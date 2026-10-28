@@ -134,17 +134,17 @@ RepoLens/
 - **Acceptance Criteria**: A test suite parses sample files in JS, TS, and Python into distinct symbol chunks with accurate line numbers, while unsupported files cleanly fall back without throwing unhandled errors.
 
 ### Milestone 3: Resilient Embedder & LanceDB Storage (Phase 3)
-- [ ] Implement `src/adapters/embedder.js`:
+- [x] Implement `src/adapters/embedder.js`:
   - Model IDs and dimensions loaded strictly from env.
   - Batching (e.g., 50 texts per batch).
   - Rate-limiting token bucket / delay to adhere to free-tier RPM/TPM caps.
   - Exponential backoff with random jitter for 429/503 responses.
-- [ ] Implement `src/adapters/vectorStore.js` using local embedded LanceDB:
+- [x] Implement `src/adapters/vectorStore.js` using local embedded LanceDB:
   - Table initialization (`chunks`) with schema including vector and full-text index.
   - Deduplication key: `repoId + filePath + contentHash`.
   - Chunk upsert, deduplication by content hash, and deletion by `repositoryId` or `filePath`.
-- [ ] Implement resumable progress: chunk-hash check plus MongoDB offset checkpoint (`statusDetail`).
-- [ ] Update `scripts/index-repo.js` to run the full ingestion pipeline to LanceDB.
+- [x] Implement resumable progress: chunk-hash check plus MongoDB offset checkpoint (`statusDetail`).
+- [x] Update `scripts/index-repo.js` to run the full ingestion pipeline to LanceDB.
 - **Acceptance Criteria**: Ingesting a repository persists all chunk vectors and text in LanceDB. Rerunning ingestion on the same repository skips already-embedded chunks. Vector query returns relevant chunks.
 
 ### Milestone 4: Hybrid Retrieval & Grounded Q&A CLI (Phase 4)

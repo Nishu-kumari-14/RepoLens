@@ -7,16 +7,18 @@ import { extractZipBuffer } from '../src/utils/zipExtractor.js';
 import { filterFiles } from '../src/ingestion/fileFilter.js';
 import { scanFiles } from '../src/ingestion/secretScanner.js';
 import { chunkFile } from '../src/ingestion/chunker.js';
+import { indexRepo } from '../src/ingestion/indexer.js';
 import { config } from '../src/config/env.js';
 
 async function main() {
   const args = process.argv.slice(2);
   const isVerbose = args.includes('--verbose') || args.includes('-v');
   const showChunks = args.includes('--chunks');
+  const runFullIndex = args.includes('--index');
   const targetUrl = args.find((arg) => !arg.startsWith('-'));
 
   if (!targetUrl) {
-    console.error('Usage: node scripts/index-repo.js <github-repo-url> [--verbose] [--chunks]');
+    console.error('Usage: node scripts/index-repo.js <github-repo-url> [--verbose] [--chunks] [--index]');
     process.exit(1);
   }
 
@@ -30,6 +32,56 @@ async function main() {
   }
 
   const { owner, repo, canonicalUrl } = parsedRepo;
+
+  if (runFullIndex) {
+    console.log(`\n======================================================`);
+    console.log(` RepoLens Ingestion Pipeline: ${owner}/${repo}`);
+    console.log(` Canonical URL:   ${canonicalUrl}`);
+    console.log(`======================================================\n`);
+
+    try {
+      let repoDoc = null;
+      try {
+        const { connect } = await import('../src/db/mongo.js');
+        const { Repository } = await import('../src/db/models.js');
+        await connect();
+        repoDoc = await Repository.findOneAndUpdate(
+          { owner, name: repo },
+          { url: canonicalUrl, status: 'queued', statusDetail: 'Starting pipeline' },
+          { upsert: true, new: true }
+        );
+      } catch (dbErr) {
+        if (isVerbose) {
+          console.warn(`[index-repo] MongoDB connection skipped or failed (${dbErr.message}). Continuing with local LanceDB indexing.`);
+        }
+      }
+
+      const result = await indexRepo({
+        owner,
+        repo,
+        repoId: repoDoc ? String(repoDoc._id) : `${owner}/${repo}`,
+        repoDoc,
+        onProgress: (stage, detail) => {
+          console.log(`[${stage.toUpperCase()}] ${detail}`);
+        },
+      });
+
+      console.log(`\n---------------- Ingestion Complete ----------------`);
+      console.log(`Repository:     ${owner}/${repo}`);
+      console.log(`Commit SHA:     ${result.commitSha}`);
+      console.log(`Files Processed: ${result.files}`);
+      console.log(`Total Chunks:   ${result.chunks}`);
+      console.log(`New Embedded:   ${result.newChunks ?? 0}`);
+      console.log(`Skipped (Dedup): ${result.skippedChunks ?? 0}`);
+      console.log(`LanceDB Dir:    ${config.paths.lancedbDataDir}`);
+      console.log(`Status:         READY\n`);
+      return;
+    } catch (err) {
+      console.error(`\n[ERROR] Ingestion failed: ${err.message}\n`);
+      process.exit(1);
+    }
+  }
+
   console.log(`\n======================================================`);
   console.log(` RepoLens Dry Run: ${owner}/${repo}`);
   console.log(` Canonical URL:   ${canonicalUrl}`);

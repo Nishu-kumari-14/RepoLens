@@ -18,6 +18,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@lancedb/lancedb": "0.40.0",
+    "apache-arrow": "18.1.0",
+    "mongoose": "9.11.4",
     "tree-sitter-wasms": "0.1.11",
     "web-tree-sitter": "0.20.8"
   }
