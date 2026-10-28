@@ -53,9 +53,15 @@ export function createChatController({
             'Cache-Control': 'no-cache, no-transform',
             Connection: 'keep-alive',
           });
+          if (typeof res.flushHeaders === 'function') {
+            res.flushHeaders();
+          }
 
           const onToken = (token) => {
             res.write(`data: ${JSON.stringify({ type: 'token', token })}\n\n`);
+            if (typeof res.flush === 'function') {
+              res.flush();
+            }
           };
 
           try {

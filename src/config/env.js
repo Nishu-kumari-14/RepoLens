@@ -1,5 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import dns from 'node:dns';
+
+// Avoid IPv6 connect timeouts on networks where IPv6 is unrouted
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 export function initEnvFile(envPath = path.resolve(process.cwd(), '.env')) {
   if (fs.existsSync(envPath)) {
