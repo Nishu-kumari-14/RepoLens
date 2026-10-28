@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node --test tests/unit/*.test.js",
     "setup:wasm": "node scripts/setup-wasm.js",
-    "ask": "node scripts/ask.js"
+    "ask": "node scripts/ask.js",
+    "eval": "node scripts/eval.js"
   },
   "keywords": [
     "rag",

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "expressjs/cookie-parser",
+    "url": "https://github.com/expressjs/cookie-parser",
+    "owner": "expressjs",
+    "repo": "cookie-parser",
+    "commitSha": "2da401391512fd56f4d1e22067ec8eb9c6f2ee85",
+    "description": "Parse Cookie header and populate req.cookies with an object keyed by the cookie names"
+  }
+]

@@ -160,8 +160,8 @@ RepoLens/
 - **Acceptance Criteria**: Asking "How is authentication handled?" yields a streamed response citing actual file lines; asking an unanswerable question triggers explicit "insufficient context" messaging.
 
 ### Milestone 5: Evaluation Harness (MRR & Recall@k) (Phase 5)
-- [ ] Ingest user-provided `eval/repos.json` (pinned repositories and commit SHAs) and `eval/questions.json` (queries with ground-truth expected files).
-- [ ] Implement `scripts/eval.js`:
+- [x] Ingest user-provided `eval/repos.json` (pinned repositories and commit SHAs) and `eval/questions.json` (queries with ground-truth expected files).
+- [x] Implement `scripts/eval.js`:
   - Index pinned repos if not already indexed.
   - Evaluate questions under 3 modes: Vector-Only, BM25-Only, and Hybrid (Vector + BM25 + RRF).
   - Compute Recall@5, Recall@8, and Mean Reciprocal Rank (MRR).

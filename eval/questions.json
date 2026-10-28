@@ -1,0 +1,37 @@
+[
+  {
+    "id": "q1",
+    "repoId": "expressjs/cookie-parser",
+    "question": "How does cookieParser parse signed cookies and unsign values?",
+    "expectedFiles": ["index.js"],
+    "description": "Locate signed cookie parser and signature verification function"
+  },
+  {
+    "id": "q2",
+    "repoId": "expressjs/cookie-parser",
+    "question": "Where is JSON cookie parsing logic implemented?",
+    "expectedFiles": ["index.js"],
+    "description": "JSON cookie parsing function"
+  },
+  {
+    "id": "q3",
+    "repoId": "expressjs/cookie-parser",
+    "question": "What runtime dependencies does cookie-parser require?",
+    "expectedFiles": ["package.json"],
+    "description": "Manifest declaring dependencies and devDependencies"
+  },
+  {
+    "id": "q4",
+    "repoId": "expressjs/cookie-parser",
+    "question": "How do you use cookie-parser in an Express application according to documentation?",
+    "expectedFiles": ["README.md"],
+    "description": "Documentation with usage example and API descriptions"
+  },
+  {
+    "id": "q5",
+    "repoId": "expressjs/cookie-parser",
+    "question": "How are secret keys validated or passed to cookieParser middleware?",
+    "expectedFiles": ["index.js"],
+    "description": "Cookie secret handling in the main export function"
+  }
+]
