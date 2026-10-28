@@ -195,11 +195,11 @@ RepoLens/
 - **Acceptance Criteria**: Full HTTP lifecycle works via `curl` / API client: trigger ingestion, poll progress, ask questions with streaming SSE responses, and recover cleanly after abrupt process termination.
 
 ### Milestone 9: React Frontend (Phase 9)
-- [ ] Set up React + Vite project in `frontend/`.
-- [ ] Build URL submission form with client-side validation.
-- [ ] Build live progress stepper tracking repository indexing states (`fetching` -> `processing` -> `indexing` -> `ready`).
-- [ ] Build chat interface with streaming answers, markdown rendering, and clickable citations.
-- [ ] Build code inspection drawer: clicking a citation highlights the exact file and line range retrieved.
+- [x] Set up React + Vite project in `frontend/`.
+- [x] Build URL submission form with client-side validation.
+- [x] Build live progress stepper tracking repository indexing states (`fetching` -> `processing` -> `indexing` -> `ready`).
+- [x] Build chat interface with streaming answers, markdown rendering, and clickable citations.
+- [x] Build code inspection drawer: clicking a citation highlights the exact file and line range retrieved.
 - **Acceptance Criteria**: A user can submit a repository URL in the browser, monitor real-time ingestion status, and chat with streamed answers and verified citation links.
 
 ### Milestone 10: Portfolio Polish & Verification (Phase 10)

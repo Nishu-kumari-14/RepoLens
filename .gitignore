@@ -10,6 +10,8 @@ node_modules/
 data/
 temp/
 coverage/
+dist/
+frontend/dist/
 
 # Binary WASM files (generated via setup:wasm)
 wasm/
