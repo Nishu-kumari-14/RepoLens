@@ -203,7 +203,7 @@ RepoLens/
 - **Acceptance Criteria**: A user can submit a repository URL in the browser, monitor real-time ingestion status, and chat with streamed answers and verified citation links.
 
 ### Milestone 10: Portfolio Polish & Verification (Phase 10)
-- [ ] Produce comprehensive `README.md` with architecture diagram, benchmark table from Phase 5, and setup instructions.
-- [ ] Document free-tier hosting strategy and known constraints.
-- [ ] Perform end-to-end regression testing across all phases.
+- [x] Produce comprehensive `README.md` with architecture diagram, benchmark table from Phase 5, and setup instructions.
+- [x] Document free-tier hosting strategy and known constraints (Render + Vercel/Netlify, cold-start caveats, LanceDB persistence note).
+- [x] Perform end-to-end regression testing across all phases — 139 tests, 23 suites, 0 failures.
 - **Acceptance Criteria**: Complete end-to-end flow verified, all tests pass, and documentation is clean and ready for showcase.
