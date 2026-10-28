@@ -109,7 +109,7 @@ const LOCKFILE_PATTERNS = [
  * @returns {{ included: boolean, reason?: string }}
  */
 export function filterFile(file, options = {}) {
-  const relativePath = file.relativePath.replace(/\\/g, '/');
+  const relativePath = (file.relativePath || file.path || '').replace(/\\/g, '/');
   const basename = path.basename(relativePath);
   const ext = path.extname(basename).toLowerCase();
   const maxBytes =

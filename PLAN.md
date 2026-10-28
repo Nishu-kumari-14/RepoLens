@@ -177,12 +177,12 @@ RepoLens/
 - **Acceptance Criteria**: General architectural questions ("What does this repo do?") use the structured overview for instant high-level answers without unnecessary chunk-level noise.
 
 ### Milestone 7: Incremental Indexing via Commit SHA (Phase 7)
-- [ ] Implement `src/ingestion/diffIndexer.js`:
+- [x] Implement `src/ingestion/diffIndexer.js`:
   - Query GitHub compare API between `indexedCommitSha` and default branch HEAD.
   - Identify added, modified, and deleted files.
   - Safe replacement: insert new chunks before deleting outdated ones.
   - Update `indexedCommitSha` in MongoDB metadata.
-- [ ] Add CLI flag `--refresh` to `scripts/index-repo.js`.
+- [x] Add CLI flag `--refresh` to `scripts/index-repo.js`.
 - **Acceptance Criteria**: Running refresh on a repo with file diffs only re-embeds changed files, removes deleted file chunks, and keeps retrieval functional throughout the process.
 
 ### Milestone 8: Express API, MongoDB Job Queue & Crash Recovery (Phase 8)

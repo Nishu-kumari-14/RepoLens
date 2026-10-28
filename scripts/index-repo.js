@@ -8,6 +8,7 @@ import { filterFiles } from '../src/ingestion/fileFilter.js';
 import { scanFiles } from '../src/ingestion/secretScanner.js';
 import { chunkFile } from '../src/ingestion/chunker.js';
 import { indexRepo } from '../src/ingestion/indexer.js';
+import { refreshRepo } from '../src/ingestion/diffIndexer.js';
 import { config } from '../src/config/env.js';
 
 async function main() {
@@ -15,10 +16,11 @@ async function main() {
   const isVerbose = args.includes('--verbose') || args.includes('-v');
   const showChunks = args.includes('--chunks');
   const runFullIndex = args.includes('--index');
+  const isRefresh = args.includes('--refresh');
   const targetUrl = args.find((arg) => !arg.startsWith('-'));
 
   if (!targetUrl) {
-    console.error('Usage: node scripts/index-repo.js <github-repo-url> [--verbose] [--chunks] [--index]');
+    console.error('Usage: node scripts/index-repo.js <github-repo-url> [--verbose] [--chunks] [--index] [--refresh]');
     process.exit(1);
   }
 
@@ -32,6 +34,52 @@ async function main() {
   }
 
   const { owner, repo, canonicalUrl } = parsedRepo;
+
+  if (isRefresh) {
+    console.log(`\n======================================================`);
+    console.log(` RepoLens Incremental Refresh: ${owner}/${repo}`);
+    console.log(` Canonical URL:   ${canonicalUrl}`);
+    console.log(`======================================================\n`);
+
+    try {
+      let repoDoc = null;
+      try {
+        const { connect } = await import('../src/db/mongo.js');
+        const { Repository } = await import('../src/db/models.js');
+        await connect();
+        repoDoc = await Repository.findOne({ owner, name: repo });
+      } catch (dbErr) {
+        if (isVerbose) {
+          console.warn(`[index-repo] MongoDB connection skipped or failed (${dbErr.message}).`);
+        }
+      }
+
+      const result = await refreshRepo({
+        owner,
+        repo,
+        repoId: repoDoc ? String(repoDoc._id) : `${owner}/${repo}`,
+        repoDoc,
+        onProgress: (stage, detail) => {
+          console.log(`[${stage.toUpperCase()}] ${detail}`);
+        },
+      });
+
+      console.log(`\n---------------- Refresh Summary ----------------`);
+      console.log(`Repository:            ${owner}/${repo}`);
+      console.log(`Commit SHA:            ${result.commitSha}`);
+      console.log(`Up to Date:            ${result.upToDate ? 'YES' : 'NO'}`);
+      console.log(`Files Added:           ${result.addedFiles ?? 0}`);
+      console.log(`Files Modified:        ${result.modifiedFiles ?? 0}`);
+      console.log(`Files Deleted:         ${result.deletedFiles ?? 0}`);
+      console.log(`New Chunks Embedded:   ${result.newChunks ?? 0}`);
+      console.log(`Overview Regenerated:  ${result.overviewRegenerated ? 'YES' : 'NO'}`);
+      console.log(`Status:                READY\n`);
+      return;
+    } catch (err) {
+      console.error(`\n[ERROR] Refresh failed: ${err.message}\n`);
+      process.exit(1);
+    }
+  }
 
   if (runFullIndex) {
     console.log(`\n======================================================`);

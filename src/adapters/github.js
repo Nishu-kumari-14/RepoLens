@@ -165,3 +165,51 @@ export async function downloadRepoArchive({
 
   return Buffer.concat(chunks);
 }
+
+/**
+ * Compares two commits via the GitHub Compare API to identify changed files.
+ *
+ * @param {object} params
+ * @param {string} params.owner
+ * @param {string} params.repo
+ * @param {string} params.base - Base commit SHA (e.g. indexedCommitSha)
+ * @param {string} params.head - Head commit SHA (e.g. latest default branch SHA)
+ * @param {string} [params.token]
+ * @returns {Promise<{ aheadBy: number, behindBy: number, files: Array<{ filename: string, status: string, previousFilename?: string }> }>}
+ */
+export async function compareCommits({ owner, repo, base, head, token }) {
+  if (!base || !head) {
+    throw new Error('Both base and head commit SHAs are required for commit comparison.');
+  }
+
+  if (base === head) {
+    return {
+      aheadBy: 0,
+      behindBy: 0,
+      files: [],
+    };
+  }
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/compare/${base}...${head}`;
+  const headers = createHeaders(token);
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    await handleApiError(response, owner, repo);
+  }
+
+  const data = await response.json();
+
+  const files = (data.files || []).map((f) => ({
+    filename: f.filename,
+    status: f.status, // 'added', 'removed', 'modified', 'renamed'
+    previousFilename: f.previous_filename,
+  }));
+
+  return {
+    aheadBy: data.ahead_by ?? 0,
+    behindBy: data.behind_by ?? 0,
+    files,
+  };
+}

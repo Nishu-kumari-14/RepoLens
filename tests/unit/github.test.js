@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { getLatestCommit, downloadRepoArchive } from '../../src/adapters/github.js';
+import { getLatestCommit, downloadRepoArchive, compareCommits } from '../../src/adapters/github.js';
 
 describe('Milestone 1: github adapter (Rate Limits, Safety & Header Security)', () => {
   const originalFetch = globalThis.fetch;
@@ -109,5 +109,53 @@ describe('Milestone 1: github adapter (Rate Limits, Safety & Header Security)', 
         }),
       /Archive download exceeded maximum allowed archive size of 1000 bytes/
     );
+  });
+
+  describe('compareCommits', () => {
+    it('returns empty file list when base and head are identical', async () => {
+      const result = await compareCommits({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        base: 'sha_same',
+        head: 'sha_same',
+      });
+
+      assert.deepEqual(result, { aheadBy: 0, behindBy: 0, files: [] });
+    });
+
+    it('queries GitHub compare endpoint and maps file statuses correctly', async () => {
+      let capturedUrl = '';
+      globalThis.fetch = async (url) => {
+        capturedUrl = url;
+        return new Response(
+          JSON.stringify({
+            ahead_by: 2,
+            behind_by: 0,
+            files: [
+              { filename: 'src/index.js', status: 'modified' },
+              { filename: 'src/new.js', status: 'added' },
+              { filename: 'old.js', status: 'removed' },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      };
+
+      const result = await compareCommits({
+        owner: 'octocat',
+        repo: 'Hello-World',
+        base: 'sha_base_1',
+        head: 'sha_head_2',
+        token: 'test_token',
+      });
+
+      assert.ok(capturedUrl.includes('/compare/sha_base_1...sha_head_2'));
+      assert.equal(result.aheadBy, 2);
+      assert.equal(result.files.length, 3);
+      assert.equal(result.files[0].filename, 'src/index.js');
+      assert.equal(result.files[0].status, 'modified');
+      assert.equal(result.files[1].status, 'added');
+      assert.equal(result.files[2].status, 'removed');
+    });
   });
 });
