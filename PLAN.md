@@ -186,12 +186,12 @@ RepoLens/
 - **Acceptance Criteria**: Running refresh on a repo with file diffs only re-embeds changed files, removes deleted file chunks, and keeps retrieval functional throughout the process.
 
 ### Milestone 8: Express API, MongoDB Job Queue & Crash Recovery (Phase 8)
-- [ ] Implement in-process job queue in `src/jobs/runner.js`:
+- [x] Implement in-process job queue in `src/jobs/runner.js`:
   - Persist job state changes (`queued`, `fetching`, `processing`, `indexing`, `ready`, `failed`).
   - Crash recovery: on server boot, query MongoDB for in-flight/stalled jobs and auto-resume or mark failed gracefully.
-- [ ] Implement Express routes (`/api/repositories`, `/api/repositories/:id`, `/api/repositories/:id/chat`, `/api/repositories/:id/refresh`).
-- [ ] Add Server-Sent Events (SSE) for streaming chat answers.
-- [ ] Add middleware: IP rate limiting, input validation, centralized error handling.
+- [x] Implement Express routes (`/api/repositories`, `/api/repositories/:id`, `/api/repositories/:id/chat`, `/api/repositories/:id/refresh`).
+- [x] Add Server-Sent Events (SSE) for streaming chat answers.
+- [x] Add middleware: IP rate limiting, input validation, centralized error handling.
 - **Acceptance Criteria**: Full HTTP lifecycle works via `curl` / API client: trigger ingestion, poll progress, ask questions with streaming SSE responses, and recover cleanly after abrupt process termination.
 
 ### Milestone 9: React Frontend (Phase 9)
