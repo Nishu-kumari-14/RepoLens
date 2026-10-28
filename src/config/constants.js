@@ -8,6 +8,7 @@ export const INGESTION_LIMITS = {
   DEFAULT_MAX_FILE_COUNT: 1000,
   DEFAULT_MAX_FILE_SIZE_KB: 200,
   CHUNK_MAX_CHARACTERS: 1500,
+  CHUNK_MAX_LINES: 80,
   FALLBACK_WINDOW_LINES: 60,
   FALLBACK_OVERLAP_LINES: 10,
 };
@@ -58,6 +59,10 @@ export const EXCLUDED_FILE_PATTERNS = [
   /pnpm-lock\.yaml$/i,
   /poetry\.lock$/i,
   /Cargo\.lock$/i,
+  /^\.eslintrc.*$/i,
+  /^\.prettierrc.*$/i,
+  /^\.editorconfig$/i,
+  /^licen[sc]e(?:\..+)?$/i,
   /\.(png|jpg|jpeg|gif|ico|svg|webp|bmp|tiff|pdf|zip|tar|gz|7z|exe|dll|so|dylib|bin|wasm)$/i,
 ];
 

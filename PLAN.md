@@ -123,14 +123,14 @@ RepoLens/
 - **Acceptance Criteria**: Running `node scripts/index-repo.js <url>` on a public repository downloads the repo safely, lists all included files, flags skipped files, strips simulated secrets, and removes temporary archive files.
 
 ### Milestone 2: Semantic Chunking with `web-tree-sitter` & WASM (Phase 2)
-- [ ] Add `tree-sitter-wasms` (pinned version) and create `scripts/setup-wasm.js` to populate `wasm/`.
-- [ ] Setup `web-tree-sitter` runtime and configure grammar loaders for JavaScript, TypeScript, and Python.
-- [ ] Implement `src/ingestion/chunker.js`:
+- [x] Add `tree-sitter-wasms` (pinned version) and create `scripts/setup-wasm.js` to populate `wasm/`.
+- [x] Setup `web-tree-sitter` runtime and configure grammar loaders for JavaScript, TypeScript, and Python.
+- [x] Implement `src/ingestion/chunker.js`:
   - AST parsing: extract top-level functions, classes, and methods with accurate line ranges and symbols.
   - Markdown chunker: heading-based section chunking.
   - Line-window fallback: sliding window with overlap for unsupported or unparseable files.
-- [ ] Format chunk metadata: `filePath`, `language`, `symbol`, `symbolKind`, `startLine`, `endLine`, `content`, `contentHash`.
-- [ ] Unit tests testing single-function, multi-function, class, fallback line window, and markdown files.
+- [x] Format chunk metadata: `filePath`, `language`, `symbol`, `symbolKind`, `startLine`, `endLine`, `content`, `contentHash`.
+- [x] Unit tests testing single-function, multi-function, class, fallback line window, and markdown files.
 - **Acceptance Criteria**: A test suite parses sample files in JS, TS, and Python into distinct symbol chunks with accurate line numbers, while unsupported files cleanly fall back without throwing unhandled errors.
 
 ### Milestone 3: Resilient Embedder & LanceDB Storage (Phase 3)

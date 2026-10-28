@@ -11,9 +11,8 @@ data/
 temp/
 coverage/
 
-# Binary WASM files (generated via setup-wasm)
-wasm/*.wasm
-!wasm/.gitkeep
+# Binary WASM files (generated via setup:wasm)
+wasm/
 
 # Operating system files
 .DS_Store

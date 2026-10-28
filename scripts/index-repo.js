@@ -6,15 +6,17 @@ import { getLatestCommit, downloadRepoArchive } from '../src/adapters/github.js'
 import { extractZipBuffer } from '../src/utils/zipExtractor.js';
 import { filterFiles } from '../src/ingestion/fileFilter.js';
 import { scanFiles } from '../src/ingestion/secretScanner.js';
+import { chunkFile } from '../src/ingestion/chunker.js';
 import { config } from '../src/config/env.js';
 
 async function main() {
   const args = process.argv.slice(2);
   const isVerbose = args.includes('--verbose') || args.includes('-v');
+  const showChunks = args.includes('--chunks');
   const targetUrl = args.find((arg) => !arg.startsWith('-'));
 
   if (!targetUrl) {
-    console.error('Usage: node scripts/index-repo.js <github-repo-url> [--verbose]');
+    console.error('Usage: node scripts/index-repo.js <github-repo-url> [--verbose] [--chunks]');
     process.exit(1);
   }
 
@@ -126,9 +128,68 @@ async function main() {
       }
     }
 
+    // 8. If --chunks flag is set, chunk all included files
+    if (showChunks) {
+      console.log(`\n---------------- Chunker Breakdown (--chunks) ----------------`);
+      const fileChunkCounts = [];
+      let totalChunks = 0;
+      const allSampleChunks = [];
+      const codeSamples = [];
+      const otherSamples = [];
+
+      for (const item of finalIncluded) {
+        if (!item.fullPath || !fs.existsSync(item.fullPath)) continue;
+        const content = fs.readFileSync(item.fullPath, 'utf8');
+        const chunks = await chunkFile(content, item.relativePath, {
+          wasmDir: config.paths.wasmDir,
+        });
+
+        fileChunkCounts.push({
+          file: item.relativePath,
+          count: chunks.length,
+        });
+        totalChunks += chunks.length;
+
+        for (const c of chunks) {
+          if (c.symbolKind === 'function' || c.symbolKind === 'method' || c.symbolKind === 'class') {
+            if (codeSamples.length < 2) codeSamples.push(c);
+          } else {
+            if (otherSamples.length < 2) otherSamples.push(c);
+          }
+          if (allSampleChunks.length < 3) {
+            allSampleChunks.push(c);
+          }
+        }
+      }
+
+      console.log(`Chunk count per file:`);
+      for (const entry of fileChunkCounts) {
+        console.log(`  - ${entry.file.padEnd(35)}: ${entry.count} chunks`);
+      }
+      console.log(`\nTotal Chunks: ${totalChunks}`);
+
+      const samplesToPrint = [...codeSamples, ...otherSamples].slice(0, 3);
+      const finalSamples = samplesToPrint.length === 3 ? samplesToPrint : allSampleChunks.slice(0, 3);
+
+      if (finalSamples.length > 0) {
+        console.log(`\nSample Chunks (up to 3):`);
+        for (let i = 0; i < finalSamples.length; i++) {
+          const sample = finalSamples[i];
+          const parentInfo = sample.parent ? ` (Parent: ${sample.parent})` : '';
+          console.log(`\n--- Sample Chunk #${i + 1} ---`);
+          console.log(`File:       ${sample.filePath}`);
+          console.log(`Symbol:     ${sample.symbol} [${sample.symbolKind}]${parentInfo}`);
+          console.log(`Lines:      ${sample.startLine}-${sample.endLine} (inclusive)`);
+          console.log(`Hash:       ${sample.contentHash}`);
+          const preview = sample.content.length > 300 ? `${sample.content.slice(0, 300)}...` : sample.content;
+          console.log(`Content:\n${preview.trim()}`);
+        }
+      }
+    }
+
     console.log(`\n[DRY RUN COMPLETE] Zero files were executed or sent to external models.\n`);
   } catch (err) {
-    console.error(`\n[ERROR] Ingestion failed: ${err.message}\n`);
+    console.error(`\n[ERROR] Ingestion failed: ${err.cause ? (err.cause.message || err.cause) : err.message}\n`);
     process.exitCode = 1;
   } finally {
     // 8. Always delete temporary files on completion or error

@@ -60,7 +60,6 @@ export const ALLOWED_EXTENSIONS = new Set([
 
 export const ALLOWED_FILENAMES = new Set([
   'readme',
-  'license',
   'dockerfile',
   'containerfile',
   'makefile',
@@ -76,6 +75,19 @@ export const ALLOWED_FILENAMES = new Set([
   'go.mod',
   'gemfile',
 ]);
+
+const LINT_FORMATTER_PATTERNS = [
+  /^\.eslintrc.*$/i,
+  /^\.prettierrc.*$/i,
+  /^\.editorconfig$/i,
+  /^eslint\.config\..*$/i,
+  /^prettier\.config\..*$/i,
+];
+
+const LICENSE_PATTERNS = [
+  /^licen[sc]e(?:\..+)?$/i,
+  /^copying(?:\..+)?$/i,
+];
 
 const LOCKFILE_PATTERNS = [
   /package-lock\.json$/i,
@@ -113,6 +125,20 @@ export function filterFile(file, options = {}) {
     }
     if (segment.startsWith('.') && segment !== '.') {
       return { included: false, reason: `hidden_directory: ${segment}` };
+    }
+  }
+
+  // 2. Check license files (skip entirely)
+  for (const pattern of LICENSE_PATTERNS) {
+    if (pattern.test(basename)) {
+      return { included: false, reason: 'license_file' };
+    }
+  }
+
+  // 3. Check linter and formatter config files
+  for (const pattern of LINT_FORMATTER_PATTERNS) {
+    if (pattern.test(basename)) {
+      return { included: false, reason: 'linter_or_formatter_config' };
     }
   }
 

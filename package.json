@@ -5,7 +5,8 @@
   "type": "module",
   "main": "src/api/server.js",
   "scripts": {
-    "test": "node --test tests/unit/*.test.js"
+    "test": "node --test tests/unit/*.test.js",
+    "setup:wasm": "node scripts/setup-wasm.js"
   },
   "keywords": [
     "rag",
@@ -15,5 +16,9 @@
     "hybrid-search"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "tree-sitter-wasms": "0.1.11",
+    "web-tree-sitter": "0.20.8"
+  }
 }

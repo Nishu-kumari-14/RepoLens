@@ -94,6 +94,41 @@ describe('Milestone 1: fileFilter (File Classification & Skip Rules)', () => {
     }
   });
 
+  it('excludes linter and formatter config files', () => {
+    const files = [
+      '.eslintrc',
+      '.eslintrc.js',
+      '.eslintrc.json',
+      '.prettierrc',
+      '.prettierrc.yaml',
+      '.editorconfig',
+      'eslint.config.js',
+      'prettier.config.cjs',
+    ];
+
+    for (const name of files) {
+      const result = filterFile({ relativePath: name });
+      assert.equal(result.included, false, `Expected ${name} to be excluded`);
+      assert.equal(result.reason, 'linter_or_formatter_config');
+    }
+  });
+
+  it('excludes LICENSE files entirely', () => {
+    const files = [
+      'LICENSE',
+      'LICENSE.txt',
+      'LICENSE.md',
+      'LICENCE',
+      'COPYING',
+    ];
+
+    for (const name of files) {
+      const result = filterFile({ relativePath: name });
+      assert.equal(result.included, false, `Expected ${name} to be excluded`);
+      assert.equal(result.reason, 'license_file');
+    }
+  });
+
   it('excludes files exceeding the single-file size limit', () => {
     const normalFile = { relativePath: 'src/big.js', sizeBytes: 150 * 1024 };
     const oversizedFile = { relativePath: 'src/giant.js', sizeBytes: 250 * 1024 };
