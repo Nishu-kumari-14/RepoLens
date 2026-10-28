@@ -177,7 +177,25 @@ export async function indexRepo({
       onBatchComplete,
     });
 
-    // ── 9. Update repo metadata ───────────────────────────────────────────────
+    // ── 9. Overview Generation (Phase 6) ──────────────────────────────────────
+    let generatedOverview = null;
+    if (configOverrides.generateOverview || (repoDoc && !repoDoc.overview)) {
+      try {
+        const { generateOverview } = await import('../generation/overview.js');
+        const overviewResult = await generateOverview({
+          files: includedFiles.map((f) => ({ filePath: f.path, content: f.content })),
+          llmGenerateFn: configOverrides.llmGenerateFn,
+        });
+        generatedOverview = overviewResult.rawMarkdown;
+        if (repoDoc) {
+          repoDoc.overview = generatedOverview;
+        }
+      } catch {
+        // Overview generation is non-fatal for indexing
+      }
+    }
+
+    // ── 10. Update repo metadata ──────────────────────────────────────────────
     if (repoDoc) {
       repoDoc.status = 'ready';
       repoDoc.statusDetail = `Indexed ${newChunks.length} new chunks`;
@@ -199,6 +217,7 @@ export async function indexRepo({
       skipped: totalSkipped,
       newChunks: newChunks.length,
       skippedChunks,
+      overview: generatedOverview,
     };
   } finally {
     // ── 10. Always clean temp files ───────────────────────────────────────────

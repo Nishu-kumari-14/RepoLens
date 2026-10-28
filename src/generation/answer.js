@@ -6,8 +6,38 @@
  */
 import { hybridSearch } from '../retrieval/hybridSearch.js';
 import { buildContext } from '../retrieval/contextBuilder.js';
-import { SYSTEM_PROMPT, buildUserPrompt } from './prompts.js';
+import { SYSTEM_PROMPT, buildUserPrompt, buildBroadUserPrompt } from './prompts.js';
 import { generateStream, generate } from '../adapters/llm.js';
+
+// Regex patterns indicating a broad or architectural query
+const BROAD_QUERY_PATTERNS = [
+  /\bwhat does this (repo|repository|project|codebase|application|package) do\b/i,
+  /\b(overview|high[- ]level summary|architecture|tech stack)\b/i,
+  /\bexplain (the )?(entire |whole )?(project|repo|codebase|system|architecture)\b/i,
+  /\bexplain (the )?(folder|directory|project) structure\b/i,
+  /\bhow is this (project|repo|codebase) (structured|organized)\b/i,
+  /\b(main purpose|summary of the project)\b/i,
+];
+
+/**
+ * Classifies a user question as either 'broad' or 'specific'.
+ * Cheap, rule-based classifier avoiding LLM latency and cost.
+ *
+ * @param {string} question
+ * @returns {'broad' | 'specific'}
+ */
+export function classifyQuery(question = '') {
+  if (!question || typeof question !== 'string') return 'specific';
+  const clean = question.trim();
+
+  for (const pattern of BROAD_QUERY_PATTERNS) {
+    if (pattern.test(clean)) {
+      return 'broad';
+    }
+  }
+
+  return 'specific';
+}
 
 // Regex matching citations in the form: [path/to/file.js:12-34]
 export const CITATION_REGEX = /\[([^:\]\s]+):(\d+)-(\d+)\]/g;
@@ -88,16 +118,18 @@ export function validateCitations(extractedCitations = [], retrievedChunks = [])
  * @param {string} params.repoId
  * @param {string} params.question
  * @param {string} [params.sessionId]
+ * @param {string} [params.overview] Optional stored repository overview
  * @param {string} [params.lancedbDataDir]
  * @param {Function} [params.onToken] Callback for streaming answer tokens
  * @param {Function} [params.llmStreamFn] Optional override for testing
  * @param {Function} [params.retrievalFn] Optional override for testing
- * @returns {Promise<{ answer: string, citations: Array<object>, retrievedChunks: Array<object> }>}
+ * @returns {Promise<{ answer: string, citations: Array<object>, retrievedChunks: Array<object>, queryType: string }>}
  */
 export async function ask({
   repoId,
   question,
   sessionId = null,
+  overview = null,
   lancedbDataDir,
   onToken = () => {},
   llmStreamFn = generateStream,
@@ -108,6 +140,7 @@ export async function ask({
   }
 
   const cleanQuestion = question.trim();
+  const queryType = classifyQuery(cleanQuestion);
 
   // 1. Hybrid Retrieval (Vector + BM25 + RRF)
   const retrievedChunks = await retrievalFn({
@@ -119,8 +152,13 @@ export async function ask({
   // 2. Build context respecting token budget & deduplicating overlapping ranges
   const { contextText, includedChunks } = buildContext(retrievedChunks);
 
-  // 3. Assemble prompt
-  const userPrompt = buildUserPrompt(cleanQuestion, contextText);
+  // 3. Assemble prompt based on classification and available overview
+  let userPrompt;
+  if (queryType === 'broad' && overview) {
+    userPrompt = buildBroadUserPrompt(cleanQuestion, overview, contextText);
+  } else {
+    userPrompt = buildUserPrompt(cleanQuestion, contextText);
+  }
 
   // 4. Stream answer from LLM
   let answer = '';
@@ -167,5 +205,6 @@ export async function ask({
     answer,
     citations: validated,
     retrievedChunks: includedChunks,
+    queryType,
   };
 }

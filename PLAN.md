@@ -169,11 +169,11 @@ RepoLens/
 - **Acceptance Criteria**: Executing `node scripts/eval.js` benchmarks all configurations automatically, outputs clear comparative metrics proving hybrid retrieval efficacy, and records the results markdown table.
 
 ### Milestone 6: Repository Overview Generation (Phase 6)
-- [ ] Implement broad vs. specific query classifier in `src/generation/answer.js`.
-- [ ] Implement `src/generation/overview.js`:
+- [x] Implement broad vs. specific query classifier in `src/generation/answer.js`.
+- [x] Implement `src/generation/overview.js`:
   - Map step: summarize key directories, entry points, package manifests, and README.
   - Reduce step: synthesize purpose, architecture, key modules, and tech stack.
-- [ ] Store structured overview in MongoDB repository record.
+- [x] Store structured overview in MongoDB repository record.
 - **Acceptance Criteria**: General architectural questions ("What does this repo do?") use the structured overview for instant high-level answers without unnecessary chunk-level noise.
 
 ### Milestone 7: Incremental Indexing via Commit SHA (Phase 7)
