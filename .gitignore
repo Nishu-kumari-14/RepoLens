@@ -1,0 +1,20 @@
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Local storage and cache
+data/
+temp/
+coverage/
+
+# Binary WASM files (generated via setup-wasm)
+wasm/*.wasm
+!wasm/.gitkeep
+
+# Operating system files
+.DS_Store
+Thumbs.db

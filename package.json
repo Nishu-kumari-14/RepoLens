@@ -1,0 +1,22 @@
+{
+  "name": "repolens",
+  "version": "0.1.0",
+  "description": "Chat with any GitHub repository using hybrid RAG and syntax-aware chunking",
+  "type": "module",
+  "main": "src/api/server.js",
+  "scripts": {
+    "test": "node --test tests/unit/**/*.test.js"
+  },
+  "keywords": [
+    "rag",
+    "github",
+    "tree-sitter",
+    "lancedb",
+    "hybrid-search"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
