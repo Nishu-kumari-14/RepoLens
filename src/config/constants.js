@@ -62,7 +62,7 @@ export const EXCLUDED_FILE_PATTERNS = [
 ];
 
 export const SECRET_FILE_PATTERNS = [
-  /^\.env(\..+)?$/i,
+  /(?:^|\.)env(?:\..+)?$/i,
   /\.(pem|key|crt|p12|pfx)$/i,
   /^id_rsa/i,
   /^id_ed25519/i,

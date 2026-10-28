@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Attempt to load .env using Node's native process.loadEnvFile or fail silently if file does not exist
 export function initEnvFile(envPath = path.resolve(process.cwd(), '.env')) {
   if (fs.existsSync(envPath)) {
     if (typeof process.loadEnvFile === 'function') {
@@ -14,7 +13,6 @@ export function initEnvFile(envPath = path.resolve(process.cwd(), '.env')) {
   }
 }
 
-// Parse integer with default
 function parseNumber(val, defaultVal) {
   if (val === undefined || val === null || val === '') return defaultVal;
   const parsed = Number(val);
@@ -22,29 +20,38 @@ function parseNumber(val, defaultVal) {
 }
 
 /**
- * Validates and returns the application configuration object.
- * Strictly verifies that model IDs and dimensions are supplied by environment variables.
+ * Validates and returns application configuration.
+ * When requireCredentials is false (e.g. for CLI dry runs or testing),
+ * missing model IDs or API keys will not throw an error.
  *
  * @param {Record<string, string | undefined>} envSource
+ * @param {object} [options]
+ * @param {boolean} [options.requireCredentials=false]
  * @returns {object} Validated config object
  */
-export function validateConfig(envSource = process.env) {
+export function validateConfig(envSource = process.env, { requireCredentials = false } = {}) {
   const errors = [];
 
-  const embeddingModelId = envSource.EMBEDDING_MODEL_ID?.trim();
-  if (!embeddingModelId) {
-    errors.push('EMBEDDING_MODEL_ID is required and must not be empty (set via .env)');
-  }
-
+  const embeddingModelId = envSource.EMBEDDING_MODEL_ID?.trim() || '';
   const rawEmbeddingDim = envSource.EMBEDDING_DIMENSION?.trim();
   const embeddingDimension = rawEmbeddingDim ? Number(rawEmbeddingDim) : NaN;
-  if (!Number.isInteger(embeddingDimension) || embeddingDimension <= 0) {
-    errors.push('EMBEDDING_DIMENSION must be a positive integer (set via .env)');
-  }
+  const llmModelId = envSource.LLM_MODEL_ID?.trim() || '';
 
-  const llmModelId = envSource.LLM_MODEL_ID?.trim();
-  if (!llmModelId) {
-    errors.push('LLM_MODEL_ID is required and must not be empty (set via .env)');
+  if (requireCredentials) {
+    if (!embeddingModelId) {
+      errors.push('EMBEDDING_MODEL_ID is required and must not be empty (set via .env)');
+    }
+    if (!Number.isInteger(embeddingDimension) || embeddingDimension <= 0) {
+      errors.push('EMBEDDING_DIMENSION must be a positive integer (set via .env)');
+    }
+    if (!llmModelId) {
+      errors.push('LLM_MODEL_ID is required and must not be empty (set via .env)');
+    }
+  } else {
+    // If provided even in non-strict mode, ensure dimension is valid if present
+    if (rawEmbeddingDim && (!Number.isInteger(embeddingDimension) || embeddingDimension <= 0)) {
+      errors.push('EMBEDDING_DIMENSION must be a positive integer (set via .env)');
+    }
   }
 
   if (errors.length > 0) {
@@ -58,7 +65,7 @@ export function validateConfig(envSource = process.env) {
     embedding: {
       provider: envSource.EMBEDDING_PROVIDER || 'gemini',
       modelId: embeddingModelId,
-      dimension: embeddingDimension,
+      dimension: Number.isInteger(embeddingDimension) ? embeddingDimension : 768,
     },
     llm: {
       provider: envSource.LLM_PROVIDER || 'gemini',
@@ -85,15 +92,4 @@ export function validateConfig(envSource = process.env) {
 // Automatically load local .env on import
 initEnvFile();
 
-export const config = (() => {
-  try {
-    return validateConfig(process.env);
-  } catch (err) {
-    // If not in test environment or missing env, export a function/lazy proxy or rethrow
-    if (process.env.NODE_ENV === 'test') {
-      // In test runner, environment might be injected dynamically by test suite
-      return null;
-    }
-    throw err;
-  }
-})();
+export const config = validateConfig(process.env, { requireCredentials: false });

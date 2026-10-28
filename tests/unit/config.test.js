@@ -31,7 +31,7 @@ describe('Milestone 0: Configuration & Environment Validation', () => {
   };
 
   it('validates and loads full configuration correctly', () => {
-    const config = validateConfig(validEnv);
+    const config = validateConfig(validEnv, { requireCredentials: true });
 
     assert.equal(config.port, 8080);
     assert.equal(config.nodeEnv, 'test');
@@ -39,16 +39,27 @@ describe('Milestone 0: Configuration & Environment Validation', () => {
     assert.equal(config.embedding.modelId, 'text-embedding-004');
     assert.equal(config.embedding.dimension, 768);
     assert.equal(config.llm.modelId, 'gemini-1.5-flash');
+    assert.equal(config.keys.githubToken, 'ghp_dummytoken123456789012345678901234');
     assert.equal(config.limits.maxArchiveSizeMb, 25);
     assert.equal(config.limits.maxFileCount, 500);
     assert.equal(config.limits.maxFileSizeKb, 100);
     assert.equal(config.limits.rateLimitRpm, 30);
   });
 
-  it('fails validation when EMBEDDING_MODEL_ID is missing', () => {
+  it('allows missing model IDs when requireCredentials is false (dry-run mode)', () => {
+    const sparseEnv = {
+      MONGODB_URI: 'mongodb://localhost:27017/repolens',
+    };
+    const conf = validateConfig(sparseEnv, { requireCredentials: false });
+    assert.equal(conf.embedding.modelId, '');
+    assert.equal(conf.llm.modelId, '');
+    assert.equal(conf.mongoUri, 'mongodb://localhost:27017/repolens');
+  });
+
+  it('fails validation when EMBEDDING_MODEL_ID is missing in strict mode', () => {
     const invalidEnv = { ...validEnv, EMBEDDING_MODEL_ID: '' };
     assert.throws(
-      () => validateConfig(invalidEnv),
+      () => validateConfig(invalidEnv, { requireCredentials: true }),
       /EMBEDDING_MODEL_ID is required/
     );
   });
@@ -56,15 +67,15 @@ describe('Milestone 0: Configuration & Environment Validation', () => {
   it('fails validation when EMBEDDING_DIMENSION is invalid or non-numeric', () => {
     const invalidEnv = { ...validEnv, EMBEDDING_DIMENSION: 'invalid' };
     assert.throws(
-      () => validateConfig(invalidEnv),
+      () => validateConfig(invalidEnv, { requireCredentials: true }),
       /EMBEDDING_DIMENSION must be a positive integer/
     );
   });
 
-  it('fails validation when LLM_MODEL_ID is missing', () => {
+  it('fails validation when LLM_MODEL_ID is missing in strict mode', () => {
     const invalidEnv = { ...validEnv, LLM_MODEL_ID: '  ' };
     assert.throws(
-      () => validateConfig(invalidEnv),
+      () => validateConfig(invalidEnv, { requireCredentials: true }),
       /LLM_MODEL_ID is required/
     );
   });

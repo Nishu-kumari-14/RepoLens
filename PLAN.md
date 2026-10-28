@@ -113,15 +113,14 @@ RepoLens/
 - **Acceptance Criteria**: `npm test` executes cleanly and passes; configuration gracefully validates missing or malformed variables.
 
 ### Milestone 1: Safe Repository Fetch, Filtering & MongoDB Ingestion (Phase 1)
-- [ ] Connect MongoDB Atlas connection lifecycle in `src/db/mongo.js` and repository schema in `src/db/models.js`.
-- [ ] Implement `src/ingestion/parseRepoUrl.js` with strict GitHub URL validation and SSRF defenses.
-- [ ] Implement `src/adapters/github.js` to get default branch commit SHA and download repository zipball.
-- [ ] Implement safe zip extraction (enforce zip-slip protection, max extracted file count, and archive size limits).
-- [ ] Implement `src/ingestion/fileFilter.js` (whitelist source extensions, blacklist binaries/minified/lockfiles/vendored dirs).
-- [ ] Implement `src/ingestion/secretScanner.js` (detect private keys, `.env*`, API key tokens).
-- [ ] Implement CLI entry point `scripts/index-repo.js` (Phases 1 dry run: output file counts, skip reasons, and save repository record to MongoDB).
-- [ ] Unit tests for URL parser, zip extraction safety, filter rules, and secret scanner.
-- **Acceptance Criteria**: Running `node scripts/index-repo.js <url>` on a public repository downloads the repo safely, lists all included files, flags skipped files, strips simulated secrets, creates/updates MongoDB record with `indexedCommitSha`, and removes temporary archive files.
+- [x] Implement `src/ingestion/parseRepoUrl.js` with strict GitHub URL validation and SSRF defenses.
+- [x] Implement `src/adapters/github.js` to get default branch commit SHA and download repository zipball without leaking credentials.
+- [x] Implement safe zip extraction in `src/utils/zipExtractor.js` (enforcing zip-slip protection, max archive size, max file count, and single-file size limits).
+- [x] Implement `src/ingestion/fileFilter.js` (whitelist source extensions, blacklist binaries/minified/lockfiles/vendored dirs, recording skip reasons).
+- [x] Implement `src/ingestion/secretScanner.js` (detect private keys, `.env*`, API key tokens, never leaking secret values).
+- [x] Implement CLI entry point `scripts/index-repo.js` (Milestone 1 dry run: outputs repo, commit SHA, included/skipped files breakdown, and secret flags).
+- [x] Unit tests for URL parser, zip extraction safety, filter rules, secret scanner, and GitHub adapter.
+- **Acceptance Criteria**: Running `node scripts/index-repo.js <url>` on a public repository downloads the repo safely, lists all included files, flags skipped files, strips simulated secrets, and removes temporary archive files.
 
 ### Milestone 2: Semantic Chunking with `web-tree-sitter` & WASM (Phase 2)
 - [ ] Add `tree-sitter-wasms` (pinned version) and create `scripts/setup-wasm.js` to populate `wasm/`.
