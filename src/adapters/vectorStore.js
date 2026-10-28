@@ -207,15 +207,22 @@ export async function deleteByFile(repoId, filePath, dataDir) {
  */
 export async function vectorSearch(repoId, queryVector, topK = 20, dataDir) {
   const dir = dataDir || config.paths.lancedbDataDir;
-  const table = await getTable(dir);
+  try {
+    const table = await getTable(dir);
 
-  const results = await table
-    .vectorSearch(queryVector)
-    .where(`repositoryId = '${escapeStr(repoId)}'`)
-    .limit(topK)
-    .toArray();
+    const results = await table
+      .vectorSearch(queryVector)
+      .where(`repositoryId = '${escapeStr(repoId)}'`)
+      .limit(topK)
+      .toArray();
 
-  return results;
+    return results;
+  } catch (err) {
+    if (err.message?.includes('not found') || err.message?.includes('Not found')) {
+      return [];
+    }
+    throw err;
+  }
 }
 
 /**
@@ -229,15 +236,22 @@ export async function vectorSearch(repoId, queryVector, topK = 20, dataDir) {
  */
 export async function keywordSearch(repoId, queryText, topK = 20, dataDir) {
   const dir = dataDir || config.paths.lancedbDataDir;
-  const table = await getTable(dir);
+  try {
+    const table = await getTable(dir);
 
-  const results = await table
-    .search(queryText)
-    .where(`repositoryId = '${escapeStr(repoId)}'`)
-    .limit(topK)
-    .toArray();
+    const results = await table
+      .search(queryText)
+      .where(`repositoryId = '${escapeStr(repoId)}'`)
+      .limit(topK)
+      .toArray();
 
-  return results;
+    return results;
+  } catch (err) {
+    if (err.message?.includes('not found') || err.message?.includes('Not found')) {
+      return [];
+    }
+    throw err;
+  }
 }
 
 // ─── Utility ─────────────────────────────────────────────────────────────────

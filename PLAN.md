@@ -148,15 +148,15 @@ RepoLens/
 - **Acceptance Criteria**: Ingesting a repository persists all chunk vectors and text in LanceDB. Rerunning ingestion on the same repository skips already-embedded chunks. Vector query returns relevant chunks.
 
 ### Milestone 4: Hybrid Retrieval & Grounded Q&A CLI (Phase 4)
-- [ ] Implement `src/retrieval/hybridSearch.js`:
+- [x] Implement `src/retrieval/hybridSearch.js`:
   - Query embedding + LanceDB vector search (top 20).
   - LanceDB BM25 full-text search over `content`, `symbol`, `filePath` (top 20).
   - Reciprocal Rank Fusion (RRF) with constant `k=60` to select top ~8 chunks.
-- [ ] Implement `src/retrieval/contextBuilder.js`:
+- [x] Implement `src/retrieval/contextBuilder.js`:
   - Token budget management, chunk deduplication, sorting by file/line, compact file-tree inclusion.
-- [ ] Implement `src/adapters/llm.js` (model loaded strictly from env) and strict system prompt in `src/generation/prompts.js`.
-- [ ] Implement `src/generation/answer.js` with post-generation citation validation (drop non-retrieved citations).
-- [ ] Implement CLI tool `scripts/ask.js <repoId> "question"`.
+- [x] Implement `src/adapters/llm.js` (model loaded strictly from env) and strict system prompt in `src/generation/prompts.js`.
+- [x] Implement `src/generation/answer.js` with post-generation citation validation (drop non-retrieved citations).
+- [x] Implement CLI tool `scripts/ask.js <repoId> "question"`.
 - **Acceptance Criteria**: Asking "How is authentication handled?" yields a streamed response citing actual file lines; asking an unanswerable question triggers explicit "insufficient context" messaging.
 
 ### Milestone 5: Evaluation Harness (MRR & Recall@k) (Phase 5)
