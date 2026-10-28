@@ -205,8 +205,12 @@ export async function refreshRepo({
     if (affectsOverview(allChanged)) {
       onProgress('overview', 'Key manifests or README changed. Regenerating overview...');
       try {
+        const overviewFiles = includedFiles.map((f) => ({
+          filePath: f.relativePath || f.path,
+          content: f.content || (f.fullPath && fs.existsSync(f.fullPath) ? fs.readFileSync(f.fullPath, 'utf8') : ''),
+        }));
         const overviewResult = await generateOverviewFn({
-          files: includedFiles.map((f) => ({ filePath: f.path, content: f.content })),
+          files: overviewFiles,
         });
         if (repoDoc && overviewResult?.rawMarkdown) {
           repoDoc.overview = overviewResult.rawMarkdown;

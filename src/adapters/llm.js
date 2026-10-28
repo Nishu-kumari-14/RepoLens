@@ -56,11 +56,21 @@ export async function generate({ system, prompt, modelId, apiKey }) {
   const url = `${GEMINI_API_BASE}/${activeModel}:generateContent?key=${activeKey}`;
   const payload = buildGeminiPayload(system, prompt);
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let response;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) break;
+    if ((response.status === 503 || response.status === 429) && attempt < 2) {
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+      continue;
+    }
+    break;
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
@@ -97,11 +107,21 @@ export async function generateStream({ system, prompt, modelId, apiKey, onChunk 
   const url = `${GEMINI_API_BASE}/${activeModel}:streamGenerateContent?alt=sse&key=${activeKey}`;
   const payload = buildGeminiPayload(system, prompt);
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let response;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) break;
+    if ((response.status === 503 || response.status === 429) && attempt < 2) {
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+      continue;
+    }
+    break;
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');

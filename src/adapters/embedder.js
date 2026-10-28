@@ -91,11 +91,18 @@ export async function embedBatch(texts, modelId, apiKey, bucket, opts = {}) {
   const backoffFn = opts.backoffDelayFn || backoffDelay;
 
   const url = `${GEMINI_EMBED_BASE}/${modelId}:batchEmbedContents?key=${apiKey}`;
+  const dimension = config.embedding.dimension;
   const body = JSON.stringify({
-    requests: texts.map((text) => ({
-      model: `models/${modelId}`,
-      content: { parts: [{ text }] },
-    })),
+    requests: texts.map((text) => {
+      const req = {
+        model: `models/${modelId}`,
+        content: { parts: [{ text }] },
+      };
+      if (dimension) {
+        req.outputDimensionality = dimension;
+      }
+      return req;
+    }),
   });
 
   let lastErr;

@@ -182,16 +182,28 @@ export async function indexRepo({
     if (configOverrides.generateOverview || (repoDoc && !repoDoc.overview)) {
       try {
         const { generateOverview } = await import('../generation/overview.js');
+        const overviewFiles = [];
+        for (const f of includedFiles) {
+          if (f.fullPath && fs.existsSync(f.fullPath)) {
+            try {
+              overviewFiles.push({
+                filePath: f.relativePath,
+                content: fs.readFileSync(f.fullPath, 'utf8'),
+              });
+            } catch {}
+          }
+        }
+
         const overviewResult = await generateOverview({
-          files: includedFiles.map((f) => ({ filePath: f.path, content: f.content })),
+          files: overviewFiles,
           llmGenerateFn: configOverrides.llmGenerateFn,
         });
         generatedOverview = overviewResult.rawMarkdown;
         if (repoDoc) {
           repoDoc.overview = generatedOverview;
         }
-      } catch {
-        // Overview generation is non-fatal for indexing
+      } catch (overviewErr) {
+        console.warn(`[indexer] Overview generation skipped: ${overviewErr.message}`);
       }
     }
 

@@ -17,7 +17,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { connect as connectLance } from '@lancedb/lancedb';
+import { connect as connectLance, Index } from '@lancedb/lancedb';
 import { config } from '../config/env.js';
 
 const TABLE_NAME = 'chunks';
@@ -70,7 +70,9 @@ async function getTable(dataDir, embeddingDimension) {
     await table.delete(`chunkId = '__seed__'`);
     // Full-text index over content
     try {
-      await table.createIndex('content', { config: { type: 'fts' } });
+      if (Index?.fts) {
+        await table.createIndex('content', { config: Index.fts() });
+      }
     } catch {
       // FTS index optional or built on rows
     }
@@ -179,6 +181,15 @@ export async function upsertChunks(repoId, commitSha, chunks, vectors, dataDir) 
   } catch { /* table may be empty */ }
 
   await table.add(rows);
+
+  // Build/refresh FTS index after inserting chunks
+  try {
+    if (Index?.fts) {
+      await table.createIndex('content', { config: Index.fts(), replace: true });
+    }
+  } catch {
+    // Non-fatal if index creation fails or exists
+  }
 }
 
 /**
@@ -267,7 +278,18 @@ export async function keywordSearch(repoId, queryText, topK = 20, dataDir) {
     if (err.message?.includes('not found') || err.message?.includes('Not found')) {
       return [];
     }
-    throw err;
+    // Graceful fallback if FTS index is missing or corrupted
+    try {
+      const table = await getTable(dir);
+      const cleanTerm = escapeStr(queryText.slice(0, 50));
+      return await table
+        .query()
+        .where(`repositoryId = '${escapeStr(repoId)}' AND content LIKE '%${cleanTerm}%'`)
+        .limit(topK)
+        .toArray();
+    } catch {
+      return [];
+    }
   }
 }
 
