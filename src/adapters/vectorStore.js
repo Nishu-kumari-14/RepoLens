@@ -15,6 +15,7 @@
  *
  * Full-text index is built/refreshed over (content, symbol, filePath).
  */
+import fs from 'node:fs';
 import path from 'node:path';
 import { connect as connectLance } from '@lancedb/lancedb';
 import { config } from '../config/env.js';
@@ -41,10 +42,26 @@ async function getTable(dataDir, embeddingDimension) {
   const db = await getDb(dataDir);
   const tableNames = await db.tableNames();
 
-  let table;
+  let table = null;
   if (tableNames.includes(TABLE_NAME)) {
-    table = await db.openTable(TABLE_NAME);
-  } else {
+    try {
+      table = await db.openTable(TABLE_NAME);
+    } catch (err) {
+      // Self-heal: table directory exists on disk but is unreadable/corrupted (missing manifest)
+      console.warn(`[vectorStore] Failed to open table '${TABLE_NAME}', cleaning and recreating:`, err.message);
+      try {
+        await db.dropTable(TABLE_NAME);
+      } catch {
+        const tablePath = path.join(dataDir, `${TABLE_NAME}.lance`);
+        if (fs.existsSync(tablePath)) {
+          fs.rmSync(tablePath, { recursive: true, force: true });
+        }
+      }
+      table = null;
+    }
+  }
+
+  if (!table) {
     // Create with a seed row so the schema (including vector dimension) is fixed.
     const dim = embeddingDimension || config.embedding.dimension || 768;
     const seedRow = makeSeedRow(dim);
