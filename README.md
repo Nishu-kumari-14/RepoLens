@@ -236,34 +236,7 @@ Test coverage includes: URL parser, zip-slip protection, file filter rules, secr
 
 ---
 
-## Free-Tier Hosting
 
-### Backend → [Render](https://render.com) Free Web Service
-
-1. Push this repo to GitHub.
-2. Create a **New Web Service** on Render, connect the repo.
-3. Set **Build Command**: `npm install && node scripts/setup-wasm.js`
-4. Set **Start Command**: `npm start`
-5. Add all environment variables from `.env` in the Render dashboard.
-
-> [!WARNING]
-> Render free-tier instances **spin down after 15 minutes of inactivity** and take ~30 seconds to cold-start. The first request after a cold start will time out on the frontend — a "waking up…" message is the right UX pattern.
-
-### Frontend → [Vercel](https://vercel.com) or [Netlify](https://netlify.com)
-
-1. Set **Root Directory** to `frontend/`.
-2. Set **Build Command**: `npm run build`
-3. Set **Output Directory**: `dist`
-4. Set **Environment Variable**: `VITE_API_URL=https://your-render-backend.onrender.com`
-
-Both services have generous free tiers with no cold-start penalty for static sites.
-
-### Data persistence on free tier
-
-- **MongoDB Atlas M0**: Free forever, 512 MB storage — sufficient for dozens of indexed repos.
-- **LanceDB**: Stored on local disk — **not** persistent across Render deployments. Repos must be re-indexed after each deploy. For persistence, mount a Render disk (~\$1/month) or use a free Railway deployment.
-
----
 
 ## Known Limitations
 
