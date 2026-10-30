@@ -6,9 +6,9 @@
 
 ---
 
-## What Makes This a Portfolio Project
+## Key Engineering Highlights
 
-RepoLens is built as an interview artifact demonstrating end-to-end RAG (Retrieval-Augmented Generation) engineering, not just a wrapper around an LLM. Every design decision is measurable:
+RepoLens is built from the ground up as a production-grade codebase intelligence engine, moving beyond naive LLM wrappers through syntax-aware parsing, hybrid retrieval, and measurable retrieval quality:
 
 | Differentiator | Implementation |
 |---|---|
@@ -238,9 +238,9 @@ Test coverage includes: URL parser, zip-slip protection, file filter rules, secr
 
 
 
-## Known Limitations
+## Known Limitations & Design Trade-offs
 
-These are stated honestly for technical interviews:
+Current system boundaries and engineering trade-offs:
 
 1. **Public repos and default branch only.** Private repos and branch selection are v2 scope.
 2. **Size cap enforced.** Repos > 50 MB archive, > 10,000 files, or files > 200 KB are rejected. Large monorepos will hit this limit.
