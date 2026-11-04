@@ -116,11 +116,11 @@ export function _clearCaches() {
  * @param {string} [dataDir]
  * @returns {Promise<Set<string>>}
  */
-export async function existingHashes(repoId, dataDir) {
+export async function existingHashes(repoId, dataDir, embeddingDimension) {
   const dir = dataDir || config.paths.lancedbDataDir;
   let table;
   try {
-    table = await getTable(dir);
+    table = await getTable(dir, embeddingDimension);
   } catch {
     return new Set();
   }

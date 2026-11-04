@@ -48,12 +48,11 @@ async function runIndexerWithFakeFiles(fileMap, repoId, lancedbDataDir, wasmDir,
       for (const c of chunks) allChunks.push(c);
     }
 
-    const stored = await existingHashes(repoId, lancedbDataDir);
+    const DIM = 4;
+    const stored = await existingHashes(repoId, lancedbDataDir, DIM);
     const newChunks = allChunks.filter(c => !stored.has(`${c.filePath}::${c.contentHash}`));
 
     callCount.embedded = (callCount.embedded || 0) + newChunks.length;
-
-    const DIM = 4;
     const fakeVectors = newChunks.map(() => new Array(DIM).fill(0.1));
     if (newChunks.length > 0) {
       await upsertChunks(repoId, 'fake-sha', newChunks, fakeVectors, lancedbDataDir);
